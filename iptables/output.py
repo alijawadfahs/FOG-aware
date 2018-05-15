@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import commands
+import command
 
 class svc: 
 	def __init__(self, svcid, svcip, svcname, svccomment):
@@ -9,6 +9,7 @@ class svc:
 		#self.pods	 = podip #the adresses of the pod ip addresses
 		self.comment = svccomment # The comment included in the iptables
 	def getep(self):
+		return
 
 
 
