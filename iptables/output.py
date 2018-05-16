@@ -1,32 +1,107 @@
 #!/usr/bin/python
+
 import command
 
-class svc: 
+class svc: # the kubernetes services class 
 	def __init__(self, svcid, svcip, svcname, svccomment):
 		self.id		 = svcid # The service ID as given by Kubernetes => KUBE-SVC-XXXXXXXXXXXXXXXX where X are a character 
 		self.name    = svcname #The name of the svc found in the iptables comment and using "kubectl get svc"
 		self.ip 	 = svcip #The service Ip given by kubernetes extracted from the iptables
-		#self.pods	 = podip #the adresses of the pod ip addresses
 		self.comment = svccomment # The comment included in the iptables
-	def getep(self):
-		return
+		self.ep      = self.GetEp() # The endpoints this service redirect to
+
+	def GetEp(self):
+		out = command.GetIpRules(self.id)
+		#out = command.OutReturn('cat out.txt') #TO BE REMOVED
+		epl = []
+		for x in out.splitlines():
+			if (self.name  and "KUBE-SEP") in x: 
+				x=x.replace(',','').split()
+				if len(x) >11: 
+					prob = x[12]
+				else:
+					prob = -1 
+				x = commentfix(x)
+				epl.append(ep(x[0],self.name, prob, x[5]))	
+
+		return epl
+
+class ep: 
+	def __init__(self, epid, name, prob, comment):
+		self.id    =   epid
+		self.name  =   name
+		self.ip    =   self.GetEpIp()
+		if prob != -1 : 
+			self.prob = prob
 
 
+	def GetEpIp(self):
+		out = command.GetIpRules(self.id)
+		#out = command.OutReturn('cat out3.txt')# TO BE REMOVED
+		for x in out.splitlines():
+			if (self.name and "KUBE-MARK-MASQ") in x  and IsIpv4(x.replace(',','').split()[3]):
+				return x.replace(',','').split()[3] 
+				
 
-def getsvcs(out):
-	#the out variable should hold the output of "iptables -t nat -L KUBE-SERVICES -v "
-	return getsvc(out, 1)
+		return out 
+	
 
-
-
-
-def getsvc(out, ln):
-	#the out variable should hold the output of "iptables -t nat -L KUBE-SERVICES ln --line-number -v " where ln is the line number
+ 
+def GetSvcs(out):
+	#the out variable should hold the output of "iptables -t nat -L KUBE-SERVICES "
 	if(out==""):
 		#add a log info that the output is not passed
 		print "ERROR: the output is not passed"
 		return []
-	else:
-		outlines=[x.split(";")[0].replace(',',' ').split() for x in out.splitlines() if x]
-		return outlines[ln]
+	#change the output to list form
+	svcl= []
+	for x in out.splitlines(): # split the output to seperate lines 
+		if kubesvc(x) and defaultsvc(x): # check for a user service rule
+			x=commentfix(x.replace(',','').split()) #split the line into list
+			svcl.append(svc(x[0],x[4],x[5].replace('/',':').split(":")[2],x[5])) # split the line into list of strings for managment purposes 
+	return svcl
+
+
+def GetSvc(out, ln):
+	return
+
+
+
+
+
+
+################################### condition checking ############################
+def kubesvc(out):
+	return "KUBE-SVC" in out
+
+def defaultsvc(out):
+	return ("default" in out) and (not "default/kubernetes:https" in out) 
+	
+def commentfix(out):
+	i=0
+	y=[]
+	for x in out: 
+		if i<6: 
+			y.append(x)
+			i+=1
+		else:
+			y[5]+=' '+x 
+	return y
+
+
+def IsIpv4(ip):
+	x = ip.split('.')
+	if len(x) != 4:
+		#print "entered the len cond"
+		return False
+	for e in x : 
+		if (not str.isdigit(e)):
+			#print "not a digit"
+			return False
+		if (int(e) < 0) or (int(e) > 255):
+			#print e + "for this number"
+			return False
+	return True 
+
+
 
