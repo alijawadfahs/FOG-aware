@@ -11,8 +11,8 @@ class svc: # the kubernetes services class
 		self.ep      = self.GetEp() # The endpoints this service redirect to
 
 	def GetEp(self):
-		out = command.GetIpRules(self.id)
-		#out = command.OutReturn('cat out.txt') #TO BE REMOVED
+		#out = command.GetIpRules(self.id)
+		out = command.OutReturn('cat out.txt') #TO BE REMOVED
 		epl = []
 		for x in out.splitlines():
 			if (self.name  and "KUBE-SEP") in x: 
@@ -28,22 +28,25 @@ class svc: # the kubernetes services class
 
 class ep: 
 	def __init__(self, epid, name, prob, comment):
-		self.id    =   epid
-		self.name  =   name
-		self.ip    =   self.GetEpIp()
-		if prob != -1 : 
+		self.id    =   epid #the Endpoint SEP given by kubernetes => KUBE-SEP-XXXXXXXXXXXXXXXX where each X is a character 
+		self.name  =   name #Service name
+		self.ip    =   self.GetEpIp() # The actual pod ip
+		if prob != -1 : # the probibility to redirect to this ep
 			self.prob = prob
+		self.lat   =   self.GetEpLatency()
 
 
 	def GetEpIp(self):
-		out = command.GetIpRules(self.id)
-		#out = command.OutReturn('cat out3.txt')# TO BE REMOVED
+		#out = command.GetIpRules(self.id)
+		out = command.OutReturn('cat out3.txt')# TO BE REMOVED
 		for x in out.splitlines():
-			if (self.name and "KUBE-MARK-MASQ") in x  and IsIpv4(x.replace(',','').split()[3]):
-				return x.replace(',','').split()[3] 
-				
+			if ((self.name and "KUBE-MARK-MASQ") in x ) and IsIpv4(x.replace(',','').split()[3]):
+				return x.replace(',','').split()[3] 			
 
 		return out 
+
+	def GetEpLatency(self):
+		return command.GetIpLatency(self.ip)
 	
 
  
@@ -60,15 +63,6 @@ def GetSvcs(out):
 			x=commentfix(x.replace(',','').split()) #split the line into list
 			svcl.append(svc(x[0],x[4],x[5].replace('/',':').split(":")[2],x[5])) # split the line into list of strings for managment purposes 
 	return svcl
-
-
-def GetSvc(out, ln):
-	return
-
-
-
-
-
 
 ################################### condition checking ############################
 def kubesvc(out):
