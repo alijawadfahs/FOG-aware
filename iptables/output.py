@@ -11,8 +11,8 @@ class svc: # the kubernetes services class
 		self.ep      = self.GetEp() # The endpoints this service redirect to
 
 	def GetEp(self):
-		#out = command.GetIpRules(self.id)
-		out = command.OutReturn('cat out.txt') #TO BE REMOVED
+		out = command.GetIpRules(self.id)
+		#out = command.OutReturn('cat out.txt') #TO BE REMOVED
 		epl = []
 		for x in out.splitlines():
 			if (self.name  and "KUBE-SEP") in x: 
@@ -37,8 +37,8 @@ class ep:
 
 
 	def GetEpIp(self):
-		#out = command.GetIpRules(self.id)
-		out = command.OutReturn('cat out3.txt')# TO BE REMOVED
+		out = command.GetIpRules(self.id)
+		#out = command.OutReturn('cat out3.txt')# TO BE REMOVED
 		for x in out.splitlines():
 			if ((self.name and "KUBE-MARK-MASQ") in x ) and IsIpv4(x.replace(',','').split()[3]):
 				return x.replace(',','').split()[3] 			
