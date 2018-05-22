@@ -1,5 +1,5 @@
 #!/usr/bin/python
-
+#ali
 ##################################### IMPORT ###############################################
 import sys
 sys.path.append('./iptables')
@@ -7,7 +7,7 @@ sys.path.append('./iptables')
 
 import argparse
 import command
-import output
+import service
 
 ##################################### PARSE ###############################################
 def parseCliOptions():
@@ -40,7 +40,7 @@ def parseCliOptions():
 
 if __name__ == "__main__":
     options = parseCliOptions()
-    svcl = output.GetSvcs(command.OutReturn(options['command'][0]))
+    svcl = service.GetSvcs()
     for sv in svcl:
     	print sv.__dict__
     	for ep in sv.ep:

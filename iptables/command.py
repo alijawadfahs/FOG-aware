@@ -11,6 +11,8 @@ def GetIpRules(ID):
 	print "Running " + "iptables -t nat -L "+ID
 	tup = commands.getstatusoutput("iptables -t nat -L "+ID) 
 	return tup[1]
+def applyIpRule(ID,IP):
+	return
 
 def GetIpLatency(IP):
 	print "Running "+"ping -c 4 " + IP + " | tail -1| awk '{print $4}' | cut -d '/' -f 2"
