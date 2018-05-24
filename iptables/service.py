@@ -1,5 +1,5 @@
 #!/usr/bin/python
-
+import logging
 import command
 
 class svc: # the kubernetes services class 
@@ -24,6 +24,9 @@ class svc: # the kubernetes services class
 				epl.append(ep(x[0],self.name, prob, x[5]))	
 
 		return epl
+	def UpdateSvcLatency(self):
+		for ep in self.ep: 
+			ep.UpdateEpLatency()
 
 class ep: 
 	def __init__(self, epid, name, prob, comment):
@@ -45,6 +48,9 @@ class ep:
 
 	def GetEpLatency(self):
 		return command.GetIpLatency(self.ip)
+
+	def UpdateEpLatency(self):
+		self.lat= self.GetEpLatency()
 	
 
  
