@@ -13,8 +13,11 @@ def GetIpRules(ID):
 	logging.info("Running " + "iptables -t nat -L "+ID)
 	tup = commands.getstatusoutput("iptables -t nat -L "+ID) 
 	return tup[1]
-def applyIpRule(ID,IP):
-	return
+def ApplyIpRule(ID,IP):
+	logging.info("Running " + "iptables -t nat -I OUTPUT 1 -d "+IP+"/32 -j "+ID)
+	tup=commands.getstatusoutput("iptables -t nat -I OUTPUT 1 -d "+IP+"/32 -j "+ID) 
+	return tup[1]
+
 
 def GetIpLatency(IP):
 	logging.info("Running "+"ping -c 4 " + IP + " | tail -1| awk '{print $4}' | cut -d '/' -f 2")
@@ -23,3 +26,4 @@ def GetIpLatency(IP):
 		return 100000
 	else: 
 		return float(tup[1])
+
