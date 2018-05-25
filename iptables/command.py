@@ -20,12 +20,25 @@ def GetIpRulesWithLineNumbers(ID):
 	return tup[1]
 
 def ApplyIpRule(ID,IP):
+
 	if CheckIpRule("OUTPUT",ID,IP)==0:
-		print "not found"
-		logging.info("Running " + "iptables -t nat -I OUTPUT 1 -d "+IP+"/32 -j "+ID)
-		tup=commands.getstatusoutput("iptables -t nat -I OUTPUT 1 -d "+IP+"/32 -j "+ID) 
-		return tup[1]
-	else: print "Already done" + str(CheckIpRule("OUTPUT",ID,IP))
+		logging.info("Running " + "iptables -t nat -I OUTPUT 1 ! -s 10.244.0.0/16 -d "+IP+"/32 -j "+ID)
+		tup=commands.getstatusoutput("iptables -t nat -I OUTPUT 1 ! -s 10.244.0.0/16 -d "+IP+"/32 -j "+ID) 
+
+	else:  logging.info("trying to create an already available rule in OUTPUT chain " + str(CheckIpRule("OUTPUT",ID,IP))+ID)
+
+	if CheckIpRule("PREROUTING",ID,IP)==0:
+		logging.info("Running " + "iptables -t nat -I PREROUTING 1 ! -s 10.244.0.0/16 -d "+IP+"/32 -j "+ID)
+		tup=commands.getstatusoutput("iptables -t nat -I PREROUTING 1 ! -s 10.244.0.0/16 -d "+IP+"/32 -j "+ID)
+
+	else:  logging.info("trying to create an already available rule in PREROUTING chain " + str(CheckIpRule("PREROUTING",ID,IP))+ID)
+
+	if CheckIpRuleMasq(IP)==0:
+		logging.info("Running " + "iptables -t nat -I PREROUTING 1 ! -s 10.244.0.0/16 -d "+IP+"/32 -j KUBE-MARK-MASQ")
+		tup=commands.getstatusoutput("iptables -t nat -I PREROUTING 1 ! -s 10.244.0.0/16 -d "+IP+"/32 -j KUBE-MARK-MASQ")
+
+	else:  logging.info("trying to create an already available rule in PREROUTING MASQ chain " + str(CheckIpRule("PREROUTING",ID,IP))+" "+ID)
+
 
 def DeleteIpRuleChain(chain,ID,IP):
 	logging.info("Deleting an IP rule" + chain + ID + IP )
@@ -54,7 +67,7 @@ def DeleteIpRuleChain(chain,ID,IP):
 	else: 
 		DeleteIpRuleChain(chain,ID,IP)
 		# add a warrning log 
-				 
+			 
 def DeleteIpRule(chain,rule):
 	logging.info("iptables -t nat -D "+chain +" " + str(rule))
 	tup = commands.getstatusoutput("iptables -t nat -D "+chain +" " + str(rule))
@@ -72,8 +85,14 @@ def GetIpLatency(IP):
 
 def CheckIpRule(chain,ID,IP):
 	out=GetIpRulesWithLineNumbers(chain)
-	if chain == "OUTPUT":
-		for x in out.splitlines():
-			if ("KUBE-SEP-" in x) and ((ID and IP) in x):
-				return int(x.replace(',','').split()[0])
-		return 0 
+	for x in out.splitlines():
+		if ("KUBE-SEP-" in x) and ((ID and IP) in x):
+			return int(x.replace(',','').split()[0])
+	return 0 
+
+def CheckIpRuleMasq(IP):
+	out=GetIpRulesWithLineNumbers("PREROUTING")
+	for x in out.splitlines():
+		if ("KUBE-MARK-MASQ" in x ) and (IP in x): 
+			return int(x.replace(',','').split()[0])
+	return 0 
