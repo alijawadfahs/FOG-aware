@@ -13,10 +13,53 @@ def GetIpRules(ID):
 	logging.info("Running " + "iptables -t nat -L "+ID)
 	tup = commands.getstatusoutput("iptables -t nat -L "+ID) 
 	return tup[1]
-def ApplyIpRule(ID,IP):
-	logging.info("Running " + "iptables -t nat -I OUTPUT 1 -d "+IP+"/32 -j "+ID)
-	tup=commands.getstatusoutput("iptables -t nat -I OUTPUT 1 -d "+IP+"/32 -j "+ID) 
+
+def GetIpRulesWithLineNumbers(ID):
+	logging.info("Running " + "iptables --line-number -t nat -L "+ID)
+	tup = commands.getstatusoutput("iptables --line-number -t nat -L "+ID) 
 	return tup[1]
+
+def ApplyIpRule(ID,IP):
+	if CheckIpRule("OUTPUT",ID,IP)==0:
+		print "not found"
+		logging.info("Running " + "iptables -t nat -I OUTPUT 1 -d "+IP+"/32 -j "+ID)
+		tup=commands.getstatusoutput("iptables -t nat -I OUTPUT 1 -d "+IP+"/32 -j "+ID) 
+		return tup[1]
+	else: print "Already done" + str(CheckIpRule("OUTPUT",ID,IP))
+
+def DeleteIpRuleChain(chain,ID,IP):
+	logging.info("Deleting an IP rule" + chain + ID + IP )
+	rules=[]
+	out=GetIpRulesWithLineNumbers(chain)
+	if chain == "OUTPUT":
+		for x in out.splitlines():
+			if ("KUBE-SEP-" in x) and ((ID and IP) in x):
+				print x 
+				rules.append(int(x.replace(',','').split()[0]))
+	print rules
+	rules = sorted(rules)
+	print rules 
+	out2 =GetIpRulesWithLineNumbers(chain)
+	if out==out2:
+		i=0
+		for rule in rules:
+			rule-=i
+			DeleteIpRule(chain,rule)
+			i+=1
+		if CheckIpRule(chain,ID,IP)==0:
+			return True
+		else:
+			DeleteIpRuleChain(chain,ID,IP)
+
+	else: 
+		DeleteIpRuleChain(chain,ID,IP)
+		# add a warrning log 
+				 
+def DeleteIpRule(chain,rule):
+	logging.info("iptables -t nat -D "+chain +" " + str(rule))
+	tup = commands.getstatusoutput("iptables -t nat -D "+chain +" " + str(rule))
+	return tup[1]
+
 
 
 def GetIpLatency(IP):
@@ -27,3 +70,10 @@ def GetIpLatency(IP):
 	else: 
 		return float(tup[1])
 
+def CheckIpRule(chain,ID,IP):
+	out=GetIpRulesWithLineNumbers(chain)
+	if chain == "OUTPUT":
+		for x in out.splitlines():
+			if ("KUBE-SEP-" in x) and ((ID and IP) in x):
+				return int(x.replace(',','').split()[0])
+		return 0 
