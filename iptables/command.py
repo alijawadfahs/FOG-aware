@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import logging
 LOG_FILENAME = 'command.log'
-logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG, format='%(asctime)s %(levelname)s: %(message)s')
+logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG, format='%(asctime)s %(levelname)s: %(message)s',filemode='w')
 import commands
 
 def OutReturn(com): # testing purposes
@@ -20,53 +20,70 @@ def GetIpRulesWithLineNumbers(ID):
 	return tup[1]
 
 def ApplyIpRule(ID,IP):
-
-	if CheckIpRule("OUTPUT",ID,IP)==0:
+	c = CheckIpRule("OUTPUT",ID,IP)
+	if c==0:
 		logging.info("Running " + "iptables -t nat -I OUTPUT 1 ! -s 10.244.0.0/16 -d "+IP+"/32 -j "+ID)
 		tup=commands.getstatusoutput("iptables -t nat -I OUTPUT 1 ! -s 10.244.0.0/16 -d "+IP+"/32 -j "+ID) 
 
-	else:  logging.info("trying to create an already available rule in OUTPUT chain " + str(CheckIpRule("OUTPUT",ID,IP))+ID)
+	else:  logging.info("trying to create an already available rule in OUTPUT chain " + str(c)+ID)
 
-	if CheckIpRule("PREROUTING",ID,IP)==0:
+	c  = CheckIpRule("PREROUTING",ID,IP)
+	if  c ==0:
 		logging.info("Running " + "iptables -t nat -I PREROUTING 1 ! -s 10.244.0.0/16 -d "+IP+"/32 -j "+ID)
 		tup=commands.getstatusoutput("iptables -t nat -I PREROUTING 1 ! -s 10.244.0.0/16 -d "+IP+"/32 -j "+ID)
 
-	else:  logging.info("trying to create an already available rule in PREROUTING chain " + str(CheckIpRule("PREROUTING",ID,IP))+ID)
-
-	if CheckIpRuleMasq(IP)==0:
+	else:  logging.info("trying to create an already available rule in PREROUTING chain " + str(c)+ID)
+	c = CheckIpRuleMasq(IP)
+	if c == 0:
 		logging.info("Running " + "iptables -t nat -I PREROUTING 1 ! -s 10.244.0.0/16 -d "+IP+"/32 -j KUBE-MARK-MASQ")
 		tup=commands.getstatusoutput("iptables -t nat -I PREROUTING 1 ! -s 10.244.0.0/16 -d "+IP+"/32 -j KUBE-MARK-MASQ")
 
-	else:  logging.info("trying to create an already available rule in PREROUTING MASQ chain " + str(CheckIpRule("PREROUTING",ID,IP))+" "+ID)
+	else:  logging.info("trying to create an already available rule in PREROUTING MASQ chain " + str(c)+" "+ID)
 
 
-def DeleteIpRuleChain(chain,ID,IP):
-	logging.info("Deleting an IP rule" + chain + ID + IP )
+def DeleteIpRuleChain(chain,ID,IP): # to be changed no nedd to be called twice
+	logging.info("Deleting an IP rule " + chain + " " + ID + " " + IP )
 	rules=[]
 	out=GetIpRulesWithLineNumbers(chain)
 	if chain == "OUTPUT":
 		for x in out.splitlines():
-			if ("KUBE-SEP-" in x) and ((ID and IP) in x):
+			if ("KUBE-SEP-" in x) and (ID in x) and (IP in x):
 				print x 
 				rules.append(int(x.replace(',','').split()[0]))
+
+	if chain == "PREROUTING":
+		for x in out.splitlines():
+			if ("KUBE-SEP-" in x) and (ID in x) and (IP in x):
+				print x 
+				rules.append(int(x.replace(',','').split()[0]))
+			if ("KUBE-MARK-MASQ" in x ) and (IP in x):
+				print x
+				rules.append(int(x.replace(',','').split()[0]))
+		
 	print rules
 	rules = sorted(rules)
 	print rules 
-	out2 =GetIpRulesWithLineNumbers(chain)
-	if out==out2:
-		i=0
-		for rule in rules:
-			rule-=i
-			DeleteIpRule(chain,rule)
-			i+=1
-		if CheckIpRule(chain,ID,IP)==0:
-			return True
-		else:
-			DeleteIpRuleChain(chain,ID,IP)
+	if rules: 
+		out2 =GetIpRulesWithLineNumbers(chain)
+		if out==out2:
+			i=0
+			for rule in rules:
+				rule-=i
+				DeleteIpRule(chain,rule)
+				i+=1
+			if CheckIpRule(chain,ID,IP) == 0 or CheckIpRuleMasq(IP) == 0:# add the mask condition
+				return True
+			else:
+				DeleteIpRuleChain(chain,ID,IP)
 
-	else: 
-		DeleteIpRuleChain(chain,ID,IP)
-		# add a warrning log 
+		else: 
+			DeleteIpRuleChain(chain,ID,IP)
+			# add a warrning log 
+
+
+
+
+
 			 
 def DeleteIpRule(chain,rule):
 	logging.info("iptables -t nat -D "+chain +" " + str(rule))
