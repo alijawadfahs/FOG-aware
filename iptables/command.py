@@ -12,11 +12,16 @@ def OutReturn(com): # testing purposes
 def GetIpRules(ID):
 	logging.info("Running " + "iptables -t nat -L "+ID)
 	tup = commands.getstatusoutput("iptables -t nat -L "+ID) 
+	while (not tup[0] == 0 ):
+		 tup = commands.getstatusoutput("iptables -t nat -L "+ID)
 	return tup[1]
 
 def GetIpRulesWithLineNumbers(ID):
 	logging.info("Running " + "iptables --line-number -t nat -L "+ID)
-	tup = commands.getstatusoutput("iptables --line-number -t nat -L "+ID) 
+	tup = commands.getstatusoutput("iptables --line-number -t nat -L "+ID)
+	while (not tup[0] == 0 ):
+		logging.warrning("error " + tup[1])
+		tup = commands.getstatusoutput("iptables --line-number -t nat -L "+ID)
 	return tup[1]
 
 def ApplyIpRule(ID,IP):
