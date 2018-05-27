@@ -25,5 +25,7 @@ class best:
 
 	def ApplyBest(self):
 		out = command.ApplyIpRule(self.epid,self.svip)
-		
+
+	def UpdateBest(self):
+		return
 

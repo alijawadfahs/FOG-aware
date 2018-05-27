@@ -79,11 +79,6 @@ def DeleteIpRuleChain(chain,ID,IP): # to be changed no nedd to be called twice
 		else: 
 			DeleteIpRuleChain(chain,ID,IP)
 			# add a warrning log 
-
-
-
-
-
 			 
 def DeleteIpRule(chain,rule):
 	logging.info("iptables -t nat -D "+chain +" " + str(rule))

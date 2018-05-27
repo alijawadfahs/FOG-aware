@@ -35,7 +35,7 @@ class ep:
 		self.ip    =   self.GetEpIp() # The actual pod ip
 		if prob != -1 : # the probibility to redirect to this ep
 			self.prob = prob
-		self.lat   =   self.GetEpLatency()
+		#self.lat   =   self.GetEpLatency()
 
 
 	def GetEpIp(self):
@@ -65,6 +65,36 @@ def GetSvcs():
 			svcl.append(svc(x[0],x[4],x[5].replace('/',':').split(":")[2],x[5])) # split the line into list of strings for managment purposes 
 	return svcl
 
+
+def CheckEp(ep,svid):
+	out = command.GetIpRules(svid)
+	if ep.id in out: 
+		out = command.GetIpRules(ep.id)
+		if ep.ip in out: 
+			return True
+	return False
+
+
+
+def CheckSvc(sv):
+	svcl = GetSvcs()
+	svi = GetSvIndex(sv,svcl)
+	if svi: # the service is available
+		for ep in sv.ep: 
+			if not CheckEp(ep,sv.id):
+				return False
+	else: return False
+
+	return True
+
+
+def GetSvIndex(sv,svcl):
+	for svi in svcl:
+		if sv.name==svi.name and sv.ip==svi.ip and sv.id==svi.id:
+			return svi
+	return 
+
+
 ################################### condition checking ############################
 def kubesvc(out):
 	return "KUBE-SVC" in out
@@ -87,14 +117,11 @@ def commentfix(out):
 def IsIpv4(ip):
 	x = ip.split('.')
 	if len(x) != 4:
-		#print "entered the len cond"
 		return False
 	for e in x : 
 		if (not str.isdigit(e)):
-			#print "not a digit"
 			return False
 		if (int(e) < 0) or (int(e) > 255):
-			#print e + "for this number"
 			return False
 	return True 
 
