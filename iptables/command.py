@@ -47,22 +47,16 @@ def DeleteIpRuleChain(chain,ID,IP): # to be changed no nedd to be called twice
 	out=GetIpRulesWithLineNumbers(chain)
 	if chain == "OUTPUT":
 		for x in out.splitlines():
-			if ("KUBE-SEP-" in x) and (ID in x) and (IP in x):
-				print x 
+			if ("KUBE-SEP-" in x) and (IP in x):
 				rules.append(int(x.replace(',','').split()[0]))
 
 	if chain == "PREROUTING":
 		for x in out.splitlines():
-			if ("KUBE-SEP-" in x) and (ID in x) and (IP in x):
-				print x 
+			if ("KUBE-SEP-" in x) and (IP in x):
 				rules.append(int(x.replace(',','').split()[0]))
 			if ("KUBE-MARK-MASQ" in x ) and (IP in x):
-				print x
 				rules.append(int(x.replace(',','').split()[0]))
-		
-	print rules
 	rules = sorted(rules)
-	print rules 
 	if rules: 
 		out2 =GetIpRulesWithLineNumbers(chain)
 		if out==out2:
