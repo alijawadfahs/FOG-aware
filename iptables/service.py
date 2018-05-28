@@ -72,26 +72,24 @@ def Check(svcl,BestList):
 	for sv in svcl: 
 		if not CheckSvc(sv):
 			if GetSvIndex(sv,svcl2):
-				print "service changed: " + sv.name 
+				app.PrintBestList(BestList)
 				# service is changed
+				DeleteSvc(sv) # to be changed the service should be added before deletion, makes a problem of deleting the new service rules. 
+				del(BestList[app.GetIndex(sv,BestList)])
+				BestList.append(app.best(GetSvIndex(sv,svcl2)))
 				status[sv.name]="CHANGED"
 			else: 
-				print "service deleted: " + sv.name 
-				status[sv.name]="DELETED"
-				# service is deletedip
-	svcl2 = GetSvcs()
+				DeleteSvc(sv)
+				del(BestList[app.GetIndex(sv,BestList)])
+				# service is deleted
 	for sv in svcl2:
 		if not GetSvIndex(sv,svcl): 
-			print "service added: " + sv.name
+			BestList.append(app.best(GetSvIndex(sv,svcl2)))
 			status[sv.name]="ADDED" 
 			# service is added
-
-
-
-
-
-
-
+	#for key, value in status.iteritems():
+	#print key + " : " + value
+	
 
 	return svcl2,BestList 
 
@@ -147,6 +145,13 @@ def DeleteAllSvc(svcl):
 def DeleteSvc(sv):
 	command.DeleteIpRuleChain("OUTPUT",sv.id,sv.ip)
 	command.DeleteIpRuleChain("PREROUTING",sv.id,sv.ip)
+
+def PrintSvcl(svcl):
+	names=[]
+	for sv in svcl: 
+		names.append(sv.name)
+	print names
+
 
 ################################### condition checking ############################
 def kubesvc(out):

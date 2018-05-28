@@ -29,3 +29,10 @@ class best:
 	def UpdateBest(self):
 		return
 
+def GetIndex(sv,BestList):
+	for b in BestList: 
+		if sv.name == b.svname:
+			return BestList.index(b)
+def PrintBestList(BestList):
+	for b in BestList: 
+		print b.__dict__
