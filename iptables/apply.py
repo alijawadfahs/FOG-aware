@@ -10,7 +10,7 @@ class best:
 		self.ApplyBest()
 	
 	def ChooseBestEp(self,sv):
-		#sv.UpdateSvcLatency()
+		sv.UpdateSvcLatency()
 		# out of range fix for i
 		best = 0
 		if len(sv.ep)==0:
@@ -24,7 +24,7 @@ class best:
 		return sv.ep[best].id, sv.ep[best].ip
 
 	def ApplyBest(self):
-		out = command.ApplyIpRule(self.epid,self.svip)
+		out = command.ApplyIpRule(self.svip,self.epip)
 
 	def UpdateBest(self):
 		return

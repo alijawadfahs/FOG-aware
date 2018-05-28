@@ -39,11 +39,26 @@ def parseCliOptions():
 
 ##################################### MAIN ###############################################
 
+def printsvcl(svcl):
+	names=[]
+	for sv in svcl: 
+		names.append(sv.name)
+	print names
+
 if __name__ == "__main__":
     options = parseCliOptions()
     svcl = service.GetSvcs()
     BestList=[]
-    for sv in svcl:
-    	print service.CheckSvc(sv)
-
+    printsvcl(svcl)
+    #command.DeleteAllRules()
+    for sv in svcl: 
+    	BestList.append(app.best(sv))
     
+    
+    service.Check(svcl,BestList)
+    #service.DeleteAllSvc(svcl)
+    while (True):
+    	raw_input("Press Enter to continue...")
+    	printsvcl(svcl)
+    	svcl,_ = service.Check(svcl,BestList)
+

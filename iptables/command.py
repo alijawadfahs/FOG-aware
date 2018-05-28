@@ -24,26 +24,27 @@ def GetIpRulesWithLineNumbers(ID):
 		tup = commands.getstatusoutput("iptables --line-number -t nat -L "+ID)
 	return tup[1]
 
-def ApplyIpRule(ID,IP):
-	c = CheckIpRule("OUTPUT",ID,IP)
+def ApplyIpRule(SIP,EIP):
+	c = CheckIpRule("OUTPUT",SIP,EIP)
 	if c==0:
-		logging.info("Running " + "iptables -t nat -I OUTPUT 1 ! -s 10.244.0.0/16 -d "+IP+"/32 -j "+ID)
-		tup=commands.getstatusoutput("iptables -t nat -I OUTPUT 1 ! -s 10.244.0.0/16 -d "+IP+"/32 -j "+ID) 
+		logging.info("Running " + "iptables -t nat -I OUTPUT 1 ! -s 10.244.0.0/16 -d "+SIP+"/32 -j DNAT --to-destination "+EIP)
+		tup=commands.getstatusoutput("iptables -t nat -I OUTPUT 1 ! -s 10.244.0.0/16 -d "+SIP+"/32 -j DNAT --to-destination "+EIP) 
 
-	else:  logging.info("trying to create an already available rule in OUTPUT chain " + str(c)+ID)
+	else: logging.info("trying to create an already available rule in OUTPUT chain " + str(c)+SIP)
 
-	c  = CheckIpRule("PREROUTING",ID,IP)
+	c  =CheckIpRule("PREROUTING",SIP,EIP)
 	if  c ==0:
-		logging.info("Running " + "iptables -t nat -I PREROUTING 1 ! -s 10.244.0.0/16 -d "+IP+"/32 -j "+ID)
-		tup=commands.getstatusoutput("iptables -t nat -I PREROUTING 1 ! -s 10.244.0.0/16 -d "+IP+"/32 -j "+ID)
+		logging.info("Running " + "iptables -t nat -I PREROUTING 1 ! -s 10.244.0.0/16 -d "+SIP+"/32 -j DNAT --to-destination "+EIP)
+		tup=commands.getstatusoutput("iptables -t nat -I PREROUTING 1 ! -s 10.244.0.0/16 -d "+SIP+"/32 -j DNAT --to-destination "+EIP)
 
-	else:  logging.info("trying to create an already available rule in PREROUTING chain " + str(c)+ID)
-	c = CheckIpRuleMasq(IP)
+	else: logging.info("trying to create an already available rule in PREROUTING chain " + str(c)+SIP)
+	
+	c = CheckIpRuleMasq(SIP)
 	if c == 0:
-		logging.info("Running " + "iptables -t nat -I PREROUTING 1 ! -s 10.244.0.0/16 -d "+IP+"/32 -j KUBE-MARK-MASQ")
-		tup=commands.getstatusoutput("iptables -t nat -I PREROUTING 1 ! -s 10.244.0.0/16 -d "+IP+"/32 -j KUBE-MARK-MASQ")
+		logging.info("Running " + "iptables -t nat -I PREROUTING 1 ! -s 10.244.0.0/16 -d "+SIP+"/32 -j KUBE-MARK-MASQ")
+		tup=commands.getstatusoutput("iptables -t nat -I PREROUTING 1 ! -s 10.244.0.0/16 -d "+SIP+"/32 -j KUBE-MARK-MASQ")
 
-	else:  logging.info("trying to create an already available rule in PREROUTING MASQ chain " + str(c)+" "+ID)
+	else: logging.info("trying to create an already available rule in PREROUTING MASQ chain " + str(c)+" "+SIP)
 
 
 def DeleteIpRuleChain(chain,ID,IP): # to be changed no nedd to be called twice
@@ -52,12 +53,12 @@ def DeleteIpRuleChain(chain,ID,IP): # to be changed no nedd to be called twice
 	out=GetIpRulesWithLineNumbers(chain)
 	if chain == "OUTPUT":
 		for x in out.splitlines():
-			if ("KUBE-SEP-" in x) and (IP in x):
+			if ("DNAT" in x) and (IP in x):
 				rules.append(int(x.replace(',','').split()[0]))
 
 	if chain == "PREROUTING":
 		for x in out.splitlines():
-			if ("KUBE-SEP-" in x) and (IP in x):
+			if ("DNAT" in x) and (IP in x):
 				rules.append(int(x.replace(',','').split()[0]))
 			if ("KUBE-MARK-MASQ" in x ) and (IP in x):
 				rules.append(int(x.replace(',','').split()[0]))
@@ -88,16 +89,16 @@ def DeleteIpRule(chain,rule):
 
 def GetIpLatency(IP):
 	logging.info("Running "+"ping -c 4 " + IP + " | tail -1| awk '{print $4}' | cut -d '/' -f 2")
-	tup = commands.getstatusoutput("ping -c 4 " + IP + " | tail -1| awk '{print $4}' | cut -d '/' -f 2")
+	tup = commands.getstatusoutput("ping -c 1 " + IP + " | tail -1| awk '{print $4}' | cut -d '/' -f 2")
 	if tup[1]=='':
 		return 100000
 	else: 
 		return float(tup[1])
 
-def CheckIpRule(chain,ID,IP):
+def CheckIpRule(chain,SIP,EIP):
 	out=GetIpRulesWithLineNumbers(chain)
 	for x in out.splitlines():
-		if ("KUBE-SEP-" in x) and ((ID and IP) in x):
+		if ("DNAT" in x) and (SIP in x) and (EIP in x):
 			return int(x.replace(',','').split()[0])
 	return 0 
 
@@ -107,3 +108,7 @@ def CheckIpRuleMasq(IP):
 		if ("KUBE-MARK-MASQ" in x ) and (IP in x): 
 			return int(x.replace(',','').split()[0])
 	return 0 
+
+def DeleteAllRules():
+	DeleteIpRuleChain("OUTPUT","","")
+	DeleteIpRuleChain("PREROUTING","","")

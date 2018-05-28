@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import logging
 import command
+import apply as app
 
 class svc: # the kubernetes services class 
 	def __init__(self, svcid, svcip, svcname, svccomment):
@@ -65,6 +66,48 @@ def GetSvcs():
 			svcl.append(svc(x[0],x[4],x[5].replace('/',':').split(":")[2],x[5])) # split the line into list of strings for managment purposes 
 	return svcl
 
+def Check(svcl,BestList):
+	status = {}
+	svcl2 = GetSvcs()
+	for sv in svcl: 
+		if not CheckSvc(sv):
+			if GetSvIndex(sv,svcl2):
+				print "service changed: " + sv.name 
+				# service is changed
+				status[sv.name]="CHANGED"
+			else: 
+				print "service deleted: " + sv.name 
+				status[sv.name]="DELETED"
+				# service is deletedip
+	svcl2 = GetSvcs()
+	for sv in svcl2:
+		if not GetSvIndex(sv,svcl): 
+			print "service added: " + sv.name
+			status[sv.name]="ADDED" 
+			# service is added
+
+
+
+
+
+
+
+
+	return svcl2,BestList 
+
+
+def CheckAllEp(sv):
+	for ep in sv.ep: 
+		if not CheckEp(ep,sv.id):
+			return False
+	return True 
+
+def CheckAllSv(sv,svcl):
+	for svi in svcl:
+		if sv.name==svi.name and sv.ip==svi.ip and sv.id==svi.id:
+			return True
+	return False
+
 
 def CheckEp(ep,svid):
 	out = command.GetIpRules(svid)
@@ -83,8 +126,10 @@ def CheckSvc(sv):
 		for ep in sv.ep: 
 			if not CheckEp(ep,sv.id):
 				return False
-	else: return False
-
+				#logiing info an EP is changed
+	else:
+		return False
+		#logiing info a sevice is deleted
 	return True
 
 
@@ -94,6 +139,14 @@ def GetSvIndex(sv,svcl):
 			return svi
 	return 
 
+def DeleteAllSvc(svcl):
+	for sv in svcl: 
+		DeleteSvc(sv)
+
+
+def DeleteSvc(sv):
+	command.DeleteIpRuleChain("OUTPUT",sv.id,sv.ip)
+	command.DeleteIpRuleChain("PREROUTING",sv.id,sv.ip)
 
 ################################### condition checking ############################
 def kubesvc(out):
