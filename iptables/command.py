@@ -25,25 +25,25 @@ def GetIpRulesWithLineNumbers(ID):
 		tup = commands.getstatusoutput("iptables --line-number -t nat -L "+ID)
 	return tup[1]
 
-def ApplyIpRule(SIP,EIP):
+def ApplyIpRule(SIP,EIP,SVNAME):
 	c = CheckIpRule("OUTPUT",SIP,EIP)
 	if c==0:
-		logging.info("Running " + "iptables -t nat -I OUTPUT 1 ! -s 10.244.0.0/16 -d "+SIP+"/32 -j DNAT --to-destination "+EIP)
-		tup=commands.getstatusoutput("iptables -t nat -I OUTPUT 1 ! -s 10.244.0.0/16 -d "+SIP+"/32 -j DNAT --to-destination "+EIP) 
-
+		logging.info("Running " + "iptables -t nat -I OUTPUT 1 ! -s 10.244.0.0/16 -d "+SIP+"/32 -j DNAT --to-destination "+EIP + " -m comment --comment " + SVNAME )
+		tup=commands.getstatusoutput("iptables -t nat -I OUTPUT 1 ! -s 10.244.0.0/16 -d "+SIP+"/32 -j DNAT --to-destination "+EIP + " -m comment --comment " + SVNAME  ) 
+		
 	else: logging.info("trying to create an already available rule in OUTPUT chain " + str(c)+SIP)
 
 	c  =CheckIpRule("PREROUTING",SIP,EIP)
 	if  c ==0:
-		logging.info("Running " + "iptables -t nat -I PREROUTING 1 ! -s 10.244.0.0/16 -d "+SIP+"/32 -j DNAT --to-destination "+EIP)
-		tup=commands.getstatusoutput("iptables -t nat -I PREROUTING 1 ! -s 10.244.0.0/16 -d "+SIP+"/32 -j DNAT --to-destination "+EIP)
+		logging.info("Running " + "iptables -t nat -I PREROUTING 1 ! -s 10.244.0.0/16 -d "+SIP+"/32 -j DNAT --to-destination "+EIP+ " -m comment --commen t" + SVNAME)
+		tup=commands.getstatusoutput("iptables -t nat -I PREROUTING 1 ! -s 10.244.0.0/16 -d "+SIP+"/32 -j DNAT --to-destination "+EIP+ " -m comment --comment " + SVNAME)
 
 	else: logging.info("trying to create an already available rule in PREROUTING chain " + str(c)+SIP)
 	
 	c = CheckIpRuleMasq(SIP)
 	if c == 0:
-		logging.info("Running " + "iptables -t nat -I PREROUTING 1 ! -s 10.244.0.0/16 -d "+SIP+"/32 -j KUBE-MARK-MASQ")
-		tup=commands.getstatusoutput("iptables -t nat -I PREROUTING 1 ! -s 10.244.0.0/16 -d "+SIP+"/32 -j KUBE-MARK-MASQ")
+		logging.info("Running " + "iptables -t nat -I PREROUTING 1 ! -s 10.244.0.0/16 -d "+SIP+"/32 -j KUBE-MARK-MASQ" + " -m comment --comment " + SVNAME)
+		tup=commands.getstatusoutput("iptables -t nat -I PREROUTING 1 ! -s 10.244.0.0/16 -d "+SIP+"/32 -j KUBE-MARK-MASQ" + " -m comment --comment " + SVNAME)
 
 	else: logging.info("trying to create an already available rule in PREROUTING MASQ chain " + str(c)+" "+SIP)
 

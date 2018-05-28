@@ -24,7 +24,8 @@ class best:
 		return sv.ep[best].id, sv.ep[best].ip
 
 	def ApplyBest(self):
-		out = command.ApplyIpRule(self.svip,self.epip)
+		command.ApplyIpRule(self.svip,self.epip,self.svname)
+
 
 	def UpdateBest(self):
 		return
