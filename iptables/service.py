@@ -86,6 +86,16 @@ def Check(svcl,BestList):
 		if not GetSvIndex(sv,svcl): 
 			BestList.append(app.best(GetSvIndex(sv,svcl2)))
 			status[sv.name]="ADDED" 
+	for b in BestList: # to be inspected more
+		if b.epid =='none':
+			print "entered"
+			for sv in svcl2: 
+				if b.svcname == sv.name:
+					DeleteSvc(sv) # to be changed the service should be added before deletion, makes a problem of deleting the new service rules. 
+					del(BestList[app.GetIndex(sv,BestList)])
+					BestList.append(app.best(GetSvIndex(sv,svcl2)))
+			#else it deletes to be implemented 
+
 			# service is added
 	#for key, value in status.iteritems():
 	#print key + " : " + value

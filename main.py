@@ -4,7 +4,7 @@
 import sys
 sys.path.append('./iptables')
 
-
+import time
 import argparse
 import command
 import service
@@ -27,8 +27,8 @@ def parseCliOptions():
         dest       = 'cycle',
         nargs      = '+',
         type       = int,
-        default    = 5,
-        help       = 'cycle time in mins',
+        default    = 20,
+        help       = 'cycle time in seconds',
     )
 
 
@@ -38,21 +38,28 @@ def parseCliOptions():
 
 
 ##################################### MAIN ###############################################
+def Run(options):
+	BestList   = []
+	svcl       = []
+
+	command.DeleteAllRules()
+	svcl = service.GetSvcs()
+	service.PrintSvcl(svcl)
+	for sv in svcl: 
+   		BestList.append(app.best(sv))
+   	while True: 
+   		print "sleeping"
+   		time.sleep(options['cycle'][0])
+   		print "wakeup"
+   		svcl,BestList = service.Check(svcl,BestList)
+   		app.PrintBestList(BestList)
+
+
+
+
+
 
 if __name__ == "__main__":
     options = parseCliOptions()
-    svcl = service.GetSvcs()
-    BestList=[]
-    service.PrintSvcl(svcl)
-    command.DeleteAllRules()
-    for sv in svcl: 
-    	BestList.append(app.best(sv))
-    
-    
-    #service.Check(svcl,BestList)
-    #service.DeleteAllSvc(svcl)
-    while (True):
-    	raw_input("Press Enter to continue...")
-    	service.PrintSvcl(svcl)
-    	service.Check(svcl,BestList)
     #command.DeleteAllRules()
+    Run(options)
