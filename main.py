@@ -27,7 +27,11 @@ def parseCliOptions():
         dest       = 'cycle',
         nargs      = '+',
         type       = int,
+<<<<<<< HEAD
+        default    = [5],
+=======
         default    = 20,
+>>>>>>> f4541ed04ba7a79574c767575ebf80190fa4978e
         help       = 'cycle time in seconds',
     )
 
@@ -45,7 +49,13 @@ def Run(options):
 	command.DeleteAllRules()
 	svcl = service.GetSvcs()
 	service.PrintSvcl(svcl)
+<<<<<<< HEAD
+	for sv in svcl:
+		for ep in sv.ep: 
+			print ep.__dict__ 
+=======
 	for sv in svcl: 
+>>>>>>> f4541ed04ba7a79574c767575ebf80190fa4978e
    		BestList.append(app.best(sv))
    	while True: 
    		print "sleeping"
@@ -62,4 +72,10 @@ def Run(options):
 if __name__ == "__main__":
     options = parseCliOptions()
     #command.DeleteAllRules()
+<<<<<<< HEAD
+    #Run(options)
+
+
+=======
     Run(options)
+>>>>>>> f4541ed04ba7a79574c767575ebf80190fa4978e
