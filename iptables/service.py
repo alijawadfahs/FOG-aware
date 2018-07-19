@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/pythonsud
 import logging
 import command
 import apply as app
@@ -34,6 +34,7 @@ class ep:
 		self.id    =   epid #the Endpoint SEP given by kubernetes => KUBE-SEP-XXXXXXXXXXXXXXXX where each X is a character 
 		self.name  =   name #Service name
 		self.ip    =   self.GetEpIp() # The actual pod ip
+		self.node  =   self.GetEpNode()
 		if prob != -1 : # the probibility to redirect to this ep
 			self.prob = prob
 		#self.lat   =   self.GetEpLatency()
@@ -48,11 +49,17 @@ class ep:
 		return out 
 
 	def GetEpLatency(self):
-		return command.GetIpLatency(self.ip)
+		return command.GetSerfRtt(self.node)
 
 	def UpdateEpLatency(self):
 		self.lat= self.GetEpLatency()
-	
+
+	def GetEpNode(self):
+		out=command.GetSerfMembers()
+		for x in out.splitlines():
+			x=x.replace("ip=",'').split()
+			if CheckIpForSerf(self.ip,x[3]):
+				return x[0]
 
  
 def GetSvcs():
@@ -90,7 +97,11 @@ def Check(svcl,BestList):
 		if b.epid =='none':
 			print "entered"
 			for sv in svcl2: 
+<<<<<<< HEAD
+				if b.svname == sv.name:
+=======
 				if b.svcname == sv.name:
+>>>>>>> f4541ed04ba7a79574c767575ebf80190fa4978e
 					DeleteSvc(sv) # to be changed the service should be added before deletion, makes a problem of deleting the new service rules. 
 					del(BestList[app.GetIndex(sv,BestList)])
 					BestList.append(app.best(GetSvIndex(sv,svcl2)))
@@ -192,6 +203,13 @@ def IsIpv4(ip):
 		if (int(e) < 0) or (int(e) > 255):
 			return False
 	return True 
+def CheckIpForSerf(epip,serfip):
+	epip=epip.split('.')
+	serfip=serfip.split('.')
+	for x in range(3):
+		if epip[x]!=serfip[x]:
+			return False
+	return True
 
 
 
