@@ -45,7 +45,6 @@ def ApplyIpRule(SIP,EIP,SVNAME):
 	if c == 0:
 		logging.info("Running " + "iptables -t nat -I PREROUTING 1 ! -s 10.244.0.0/16 -d "+SIP+"/32 -j KUBE-MARK-MASQ" + " -m comment --comment " + SVNAME)
 		tup=commands.getstatusoutput("iptables -t nat -I PREROUTING 1 ! -s 10.244.0.0/16 -d "+SIP+"/32 -j KUBE-MARK-MASQ" + " -m comment --comment " + SVNAME)
-<<<<<<< HEAD
 
 	else: logging.info("trying to create an already available rule in PREROUTING MASQ chain " + str(c)+" "+SIP)
 
@@ -62,10 +61,9 @@ def ClearIpChain(name,option):
 		if option == "X":
 			logging.info("Running " + "iptables -t nat -X"+ name)
 			tup = commands.getstatusoutput("iptables -t nat -X"+ name)
-=======
 
 	else: logging.info("trying to create an already available rule in PREROUTING MASQ chain " + str(c)+" "+SIP)
->>>>>>> f4541ed04ba7a79574c767575ebf80190fa4978e
+
 
 	print tup
 
@@ -107,8 +105,6 @@ def DeleteIpRule(chain,rule):
 	tup = commands.getstatusoutput("iptables -t nat -D "+chain +" " + str(rule))
 	return tup[1]
 
-<<<<<<< HEAD
-=======
 
 
 def GetIpLatency(IP):
@@ -119,7 +115,6 @@ def GetIpLatency(IP):
 	else: 
 		return float(tup[1])
 
->>>>>>> f4541ed04ba7a79574c767575ebf80190fa4978e
 def CheckIpRule(chain,SIP,EIP):
 	out=GetIpRulesWithLineNumbers(chain)
 	for x in out.splitlines():
@@ -136,7 +131,6 @@ def CheckIpRuleMasq(IP):
 
 def DeleteAllRules():
 	DeleteIpRuleChain("OUTPUT","","")
-<<<<<<< HEAD
 	DeleteIpRuleChain("PREROUTING","","")
 
 
@@ -162,6 +156,5 @@ def GetSerfRtt(node):
 	logging.info("Running serf rtt " + node + " | cut -d: -f2 | cut -d ' ' -f2")
 	tup = commands.getstatusoutput("serf rtt " + node + " | cut -d: -f2 | cut -d ' ' -f2")
 	return float(tup[1])
-=======
 	DeleteIpRuleChain("PREROUTING","","")
->>>>>>> f4541ed04ba7a79574c767575ebf80190fa4978e
+

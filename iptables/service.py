@@ -97,11 +97,8 @@ def Check(svcl,BestList):
 		if b.epid =='none':
 			print "entered"
 			for sv in svcl2: 
-<<<<<<< HEAD
+
 				if b.svname == sv.name:
-=======
-				if b.svcname == sv.name:
->>>>>>> f4541ed04ba7a79574c767575ebf80190fa4978e
 					DeleteSvc(sv) # to be changed the service should be added before deletion, makes a problem of deleting the new service rules. 
 					del(BestList[app.GetIndex(sv,BestList)])
 					BestList.append(app.best(GetSvIndex(sv,svcl2)))
