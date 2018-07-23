@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 from math import sin, cos, sqrt, atan2, radians
 import serial 
@@ -29,17 +29,17 @@ class point:
 
 def parseCliOptions():
 
-    parser = argparse.ArgumentParser()
+	parser = argparse.ArgumentParser()
 
-    parser.add_argument( '--command',
-        dest       = 'command',
-        nargs      = '+',
-        type       = str,
-        default    = ['ls'],
-        help       = 'command to the get status output',
-    )
-    options        = parser.parse_args()
-    return options.__dict__
+	parser.add_argument( '--command',
+		dest       = 'command',
+		nargs      = '+',
+		type       = str,
+		default    = ['ls'],
+		help       = 'command to the get status output',
+	)
+	options        = parser.parse_args()
+	return options.__dict__
 
 def GetGPRMC():
 	gps= serial.Serial('/dev/ttyS0', 9600)

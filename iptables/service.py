@@ -1,4 +1,4 @@
-#!/usr/bin/pythonsud
+#!/usr/bin/python3
 import logging
 import command
 import apply as app
@@ -37,6 +37,7 @@ class ep:
 		self.node  =   self.GetEpNode()
 		if prob != -1 : # the probibility to redirect to this ep
 			self.prob = prob
+		self.lat= self.GetEpLatency()
 		#self.lat   =   self.GetEpLatency()
 
 
@@ -95,7 +96,6 @@ def Check(svcl,BestList):
 			status[sv.name]="ADDED" 
 	for b in BestList: # to be inspected more
 		if b.epid =='none':
-			print "entered"
 			for sv in svcl2: 
 
 				if b.svname == sv.name:
@@ -168,7 +168,7 @@ def PrintSvcl(svcl):
 	names=[]
 	for sv in svcl: 
 		names.append(sv.name)
-	print names
+	print(names)
 
 
 ################################### condition checking ############################

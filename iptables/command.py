@@ -1,8 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import logging
 LOG_FILENAME = 'command.log'
 logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG, format='%(asctime)s %(levelname)s: %(message)s',filemode='w')
-import commands
+import subprocess as commands
 
 def OutReturn(com): # testing purposes
 	logging.info("Running " + com)
@@ -19,8 +19,8 @@ def GetIpRules(ID):
 	return tup[1]
 
 def GetIpRulesWithLineNumbers(ID):
-	logging.info("Running " + "iptables --line-number -t nat -L "+ID)
-	tup = commands.getstatusoutput("iptables --line-number -t nat -L "+ID)
+	logging.info("Running " + "iptables --line-number -t nat -L "+ID +" | tail -n+3")
+	tup = commands.getstatusoutput("iptables --line-number -t nat -L "+ID + " | tail -n+3")
 	while (not tup[0] == 0 ):
 		logging.warning("error " + tup[1])
 		tup = commands.getstatusoutput("iptables --line-number -t nat -L "+ID)
@@ -48,24 +48,82 @@ def ApplyIpRule(SIP,EIP,SVNAME):
 
 	else: logging.info("trying to create an already available rule in PREROUTING MASQ chain " + str(c)+" "+SIP)
 
+def ApplyIpRuleChain(SIP,SVNAME):
+	c = CheckIpRule("OUTPUT",SIP,SVNAME)
+	if c==0:
+		logging.info("Running " + "iptables -t nat -I OUTPUT 1 ! -s 10.244.0.0/16 -d "+SIP+"/32 -j FOG-"+SVNAME)
+		tup=commands.getstatusoutput("iptables -t nat -I OUTPUT 1 ! -s 10.244.0.0/16 -d "+SIP+"/32 -j FOG-"+SVNAME) 
+		
+	else: logging.info("trying to create an already available rule in OUTPUT chain " + str(c)+SIP)
+
+	c  =CheckIpRule("PREROUTING",SIP,SVNAME)
+	if  c ==0:
+		logging.info("Running " + "iptables -t nat -I PREROUTING 1 ! -s 10.244.0.0/16 -d "+SIP+"/32 -j FOG-"+SVNAME)
+		tup=commands.getstatusoutput("iptables -t nat -I PREROUTING 1 ! -s 10.244.0.0/16 -d "+SIP+"/32 -j FOG-"+SVNAME)
+
+	else: logging.info("trying to create an already available rule in PREROUTING chain " + str(c)+SIP)
+	
+	c = CheckIpRuleMasq(SIP)
+	if c == 0:
+		logging.info("Running " + "iptables -t nat -I PREROUTING 1 ! -s 10.244.0.0/16 -d "+SIP+"/32 -j KUBE-MARK-MASQ" + " -m comment --comment " + SVNAME)
+		tup=commands.getstatusoutput("iptables -t nat -I PREROUTING 1 ! -s 10.244.0.0/16 -d "+SIP+"/32 -j KUBE-MARK-MASQ" + " -m comment --comment " + SVNAME)
+
+
+
+
+
+def CreateIpRuleWithProba(SVNAME,SIP,EIP,PROBA):
+	logging.info("Running " + "iptables -t nat -m statistic --mode random -j DNAT -A FOG-"+SVNAME+" -d "+SIP+" --probability "+str(PROBA)+" --to-destination " + EIP)
+	tup = commands.getstatusoutput("iptables -t nat -m statistic --mode random -j DNAT -A FOG-"+SVNAME+" -d "+SIP+" --probability "+str(PROBA)+" --to-destination " + EIP)
+
+def CheckIpRuleWithProba(SVNAME,SIP,EIP,PROBA,i):
+	logging.info("Running " + "iptables -t nat -L FOG-"+SVNAME+" "+str(i))
+	tup = commands.getstatusoutput("iptables -t nat -L FOG-"+SVNAME+" "+str(i))
+	if tup !=0: #rule number is not found 
+		logging.info("rule number is not found")
+		return False
+	if PROBA !=1:
+		if (SIP in tup[1]) and (EIP in tup[1]) and (str(PROBA) in tup[1]):
+			return True 
+	else: 
+		if (SIP in tup[1]) and (EIP in tup[1]): 
+			return True
+	return False # rule is not found or is not in the correct position
+
+
+def CreateIpRuleWithoutProba(SVNAME,SIP,EIP):
+	logging.info("Running " + "iptables -t nat  -j DNAT -A FOG-"+SVNAME+" -d "+SIP+" --to-destination " + EIP)
+	tup = commands.getstatusoutput("iptables -t nat  -j DNAT -A FOG-"+SVNAME+" -d "+SIP+" --to-destination " + EIP) 
+
 def CreateIpChain(name):
-	logging.info("Running " + "iptables -t nat -N "+ name)
-	tup = commands.getstatusoutput("iptables -t nat -N "+ name)
+	logging.info("Running " + "iptables -t nat -N FOG-"+ name)
+	tup = commands.getstatusoutput("iptables -t nat -N FOG-"+ name)
+def CheckIpChainEmpty(name):
+	logging.info("Running " + "iptables -t nat -L FOG-"+ name+ " 1")
+	tup = commands.getstatusoutput("iptables -t nat -L FOG-"+ name+" 1")
+	if tup[0]==0 and tup[1]=='': 
+		return True #the chain is empty
+	return False #the chain have at least one rule
+
+def CheckIpChain(name):
+	logging.info("Running " + "iptables -t nat -L FOG-"+ name)
+	tup = commands.getstatusoutput("iptables -t nat -L FOG-"+ name)
+	if tup[0]== 0:
+		return True #the chain is already created
+	return False #the chain is not found
 
 
 def ClearIpChain(name,option):
 	# if option is F then the chain will be flushed if option is X the chain will be deleted
 	if (option == "F") or (option == "X"):
-		logging.info("Running " + "iptables -t nat -F "+ name)
-		tup = commands.getstatusoutput("iptables -t nat -F"+ name)
+		logging.info("Running " + "iptables -t nat -F FOG-"+ name)
+		tup = commands.getstatusoutput("iptables -t nat -F FOG-"+ name)
 		if option == "X":
-			logging.info("Running " + "iptables -t nat -X"+ name)
-			tup = commands.getstatusoutput("iptables -t nat -X"+ name)
+			logging.info("Running " + "iptables -t nat -X FOG-"+ name)
+			tup = commands.getstatusoutput("iptables -t nat -X FOG-"+ name)
+			print("iptables -t nat -X FOG-"+ name)
+			print(tup)
 
-	else: logging.info("trying to create an already available rule in PREROUTING MASQ chain " + str(c)+" "+SIP)
-
-
-	print tup
 
 def DeleteIpRuleChain(chain,ID,IP): # to be changed no nedd to be called twice
 	logging.info("Deleting an IP rule " + chain + " " + ID + " " + IP )
@@ -73,12 +131,12 @@ def DeleteIpRuleChain(chain,ID,IP): # to be changed no nedd to be called twice
 	out=GetIpRulesWithLineNumbers(chain)
 	if chain == "OUTPUT":
 		for x in out.splitlines():
-			if ("DNAT" in x) and (IP in x):
+			if ("FOG-" in x) and (IP in x):
 				rules.append(int(x.replace(',','').split()[0]))
 
 	if chain == "PREROUTING":
 		for x in out.splitlines():
-			if ("DNAT" in x) and (IP in x):
+			if ("FOG-" in x) and (IP in x):
 				rules.append(int(x.replace(',','').split()[0]))
 			if ("KUBE-MARK-MASQ" in x ) and (IP in x):
 				rules.append(int(x.replace(',','').split()[0]))
@@ -118,7 +176,7 @@ def GetIpLatency(IP):
 def CheckIpRule(chain,SIP,EIP):
 	out=GetIpRulesWithLineNumbers(chain)
 	for x in out.splitlines():
-		if ("DNAT" in x) and (SIP in x) and (EIP in x):
+		if (SIP in x) and (EIP in x):
 			return int(x.replace(',','').split()[0])
 	return 0 
 
@@ -130,14 +188,21 @@ def CheckIpRuleMasq(IP):
 	return 0 
 
 def DeleteAllRules():
+	chains=[]
+	out=GetIpRulesWithLineNumbers("OUTPUT")
+	for x in out.splitlines():
+		if "FOG" in x:
+			chains.append(x.split()[1].split('-')[1])
+
 	DeleteIpRuleChain("OUTPUT","","")
 	DeleteIpRuleChain("PREROUTING","","")
+	for chain in chains: 
+		ClearIpChain(chain,"X")
 
 
 ############################################ LATENCY COMMANDS ##################################
 
 def GetIpLatency(IP):
-	print "called"
 	logging.info("Running "+"ping -c 4 " + IP + " | tail -1| awk '{print $4}' | cut -d '/' -f 2")
 	tup = commands.getstatusoutput("ping -c 1 " + IP + " | tail -1| awk '{print $4}' | cut -d '/' -f 2")
 	if tup[1]=='':
