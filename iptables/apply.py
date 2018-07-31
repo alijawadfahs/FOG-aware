@@ -2,14 +2,17 @@
 import command
 import proba
 class best:
-	def __init__(self, sv):
+	def __init__(self, sv, options):
 		self.svname         =    sv.name
 		self.svid	        =    sv.id 
 		self.svip 	        =    sv.ip 
 		self.epid,self.epip =    self.ChooseBestEp(sv)
 		self.sortedeps      =    self.SortEps(sv)
-		#self.ApplyBest()
-		self.ApplyLBBest()
+		# TO DO: add if statements to select one of the applies. 
+
+		#self.ApplyBest() #in case we are selecting only one best pod
+		self.ApplyLBBest(options) # in case we are selecting K best pod
+		#self.ApplyLBLat() # selecting the probability according to RTT of the pod
 	def ChooseBestEp(self,sv):
 		sv.UpdateSvcLatency()
 		# out of range fix for i
@@ -43,27 +46,27 @@ class best:
 	def ApplyBest(self):
 		command.ApplyIpRule(self.svip,self.epip,self.svname)
 
-	def ApplyLBBest(self): 
-		#create a new chain for the service, it will contain all endpoints with different proba. 
+	def ApplyLBBest(self,options):
 		if (not command.CheckIpChain(self.svname)) or (command.CheckIpChainEmpty(self.svname)) :
-			command.CreateIpChain(self.svname)
-			command.ApplyIpRuleChain(self.svip,self.svname)
-			k=proba.CalacK(self.sortedeps)
-			for ep in self.sortedeps: 
-				i=self.sortedeps.index(ep)+1
-				if i!=len(self.sortedeps):
-					prob= proba.CalacPi(.8,len(self.sortedeps),k,i)
-					command.CreateIpRuleWithProba(self.svname,self.svip,ep.ip,prob)
+			problist=proba.CalacProba(self.sortedeps,options)
+			print(problist)
+			command.CreateIpChain(self.svname) #create a new chain for the service, it will contain all endpoints with different proba. 
+			if command.CheckIpChain(self.svname):
+				command.ApplyIpRuleChain(self.svip,self.svname)
+			for ep in self.sortedeps:
+				i=self.sortedeps.index(ep)
+				if i!=len(self.sortedeps)-1:
+					command.CreateIpRuleWithProba(self.svname,self.svip,ep.ip,problist[i])
 				else:
-					command.CreateIpRuleWithoutProba(self.svname,self.svip,ep.ip)
+					if problist[i] != 1: 
+						print("an error occurred, the last pod probability is not equal to 1")
+					command.CreateIpRuleWithoutProba(self.svname,self.svip,ep.ip) #probability equal 1 since it's the last rule
 		else: 
 			command.ApplyIpRuleChain(self.svip,self.svname)
-			k=proba.CalacK(self.sortedeps)
 			for ep in self.sortedeps: 
 				i=self.sortedeps.index(ep)+1
 				if i!=len(self.sortedeps):
-					prob= proba.CalacPi(.8,len(self.sortedeps),k,i)
-					if not command.CheckIpRuleWithProba(self.svname,self.svip,ep.ip,prob,i):
+					if not command.CheckIpRuleWithProba(self.svname,self.svip,ep.ip,problist[i-1],i):
 						print("entered")
 						command.ClearIpChain(self.svname,"F")
 						self.ApplyLBBest()

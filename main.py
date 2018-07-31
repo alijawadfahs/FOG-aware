@@ -15,52 +15,52 @@ def parseCliOptions():
 
 		parser = argparse.ArgumentParser()
 
-		parser.add_argument( '--command',
-			dest       = 'command',
-			nargs      = '+',
+		parser.add_argument( '--command', #imp
+			dest       = 'command', 
 			type       = str,
-			default    = ['ls'],
+			default    = 'ls',
 			help       = 'command to the get status output',
 		)
 
-		parser.add_argument( '--cycle',
-			dest       = 'cycle',
-			nargs      = '+',
+		parser.add_argument( '--cycle',#imp
+			dest       = 'cycle',  
 			type       = int,
-			default    = [1],
+			default    = 1,
 			help       = 'cycle time in seconds',
 		)
 
-		parser.add_argument( '--alpha',
+		parser.add_argument( '--alpha', #imp 
 			dest       = 'alpha',
-			nargs      = '+',
 			type       = float,
-			default    = [.8],
+			default    = .8,
 			help       = 'The importance of the location in scheduling',
 		)
 
-		parser.add_argument( '--LoadBalancing',
+		parser.add_argument( '--LoadBalancing', #imp
 			dest       = 'LB',
-			nargs      = '+',
 			type       = str,
-			default    = ['1-best'],
+			default    = '1-best',
 			help       = 'The function that will decide how probability should be divided over the pods',
 		)
-		parser.add_argument( '--K',
+		parser.add_argument( '--K', #imp
 			dest       = 'K',
-			nargs      = '+',
 			type       = int,
-			default    = [1],
+			default    = -1,
 			help       = 'number of best pods',
 		)
-
-
+		parser.add_argument( '--serfoff', #imp
+			dest       = 'serfoff',
+			action     = 'store_true',
+			help       = 'use serf for latency calculation or use ping',
+		)
+		
 		options        = parser.parse_args()
 		return options.__dict__
 
 
 ##################################### MAIN ###############################################
-def GetOptions(options):
+def GetOptions():
+	options = parseCliOptions()
 	return options
 
 def Run(options):
@@ -70,10 +70,10 @@ def Run(options):
 	svcl = service.GetSvcs()
 	service.PrintSvcl(svcl)
 	for sv in svcl: 
-		BestList.append(app.best(sv))
+		BestList.append(app.best(sv,options))
 	while True: 
 		print("sleeping")
-		time.sleep(options['cycle'][0])
+		time.sleep(options['cycle'])
 		print("wakeup")
 		svcl,BestList = service.Check(svcl,BestList)
 		app.PrintBestList(BestList)
@@ -85,7 +85,7 @@ def Run(options):
 
 if __name__ == "__main__":
 		options = parseCliOptions()
-		command.DeleteAllRules()
-		#Run(options)
+		#command.DeleteAllRules()
+		Run(options)
 
 

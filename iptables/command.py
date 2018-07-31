@@ -203,6 +203,7 @@ def DeleteAllRules():
 ############################################ LATENCY COMMANDS ##################################
 
 def GetIpLatency(IP):
+	print("ip: " + IP +"calculatng latency ")
 	logging.info("Running "+"ping -c 4 " + IP + " | tail -1| awk '{print $4}' | cut -d '/' -f 2")
 	tup = commands.getstatusoutput("ping -c 1 " + IP + " | tail -1| awk '{print $4}' | cut -d '/' -f 2")
 	if tup[1]=='':

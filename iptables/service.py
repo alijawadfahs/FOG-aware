@@ -2,7 +2,7 @@
 import logging
 import command
 import apply as app
-
+import main 
 class svc: # the kubernetes services class 
 	def __init__(self, svcid, svcip, svcname, svccomment):
 		self.id		 = svcid # The service ID as given by Kubernetes => KUBE-SVC-XXXXXXXXXXXXXXXX where X are a character 
@@ -23,8 +23,8 @@ class svc: # the kubernetes services class
 					prob = -1 
 				x = commentfix(x)
 				epl.append(ep(x[0],self.name, prob, x[5]))	
-
 		return epl
+		
 	def UpdateSvcLatency(self):
 		for ep in self.ep: 
 			ep.UpdateEpLatency()
@@ -38,7 +38,6 @@ class ep:
 		if prob != -1 : # the probibility to redirect to this ep
 			self.prob = prob
 		self.lat= self.GetEpLatency()
-		#self.lat   =   self.GetEpLatency()
 
 
 	def GetEpIp(self):
@@ -46,11 +45,13 @@ class ep:
 		for x in out.splitlines():
 			if ((self.name and "KUBE-MARK-MASQ") in x ) and IsIpv4(x.replace(',','').split()[3]):
 				return x.replace(',','').split()[3] 			
-
 		return out 
 
 	def GetEpLatency(self):
-		return command.GetSerfRtt(self.node)
+		options=main.GetOptions()
+		if not options['serfoff']:
+			return command.GetSerfRtt(self.node)
+		return command.GetIpLatency(self.ip)
 
 	def UpdateEpLatency(self):
 		self.lat= self.GetEpLatency()
