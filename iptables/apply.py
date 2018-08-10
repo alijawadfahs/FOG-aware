@@ -41,21 +41,24 @@ class best:
 					if sortedeps.index(sep) == len(sortedeps)-1:
 						sortedeps.append(ep)
 						break
+		for ep in sortedeps: 
+			print("ep.ip= "+ ep.ip + " ser rep.lat =" + str(ep.lat))
 		return sortedeps
 		
 	def ApplyBest(self):
 		command.ApplyIpRule(self.svip,self.epip,self.svname)
 
 	def ApplyLBBest(self,options):
+		print("deployment name " + self.svname)	
+		problist=proba.CalacProba(self.sortedeps,options)
+		print("rules probability: "+str(problist))
 		if (not command.CheckIpChain(self.svname)) or (command.CheckIpChainEmpty(self.svname)) :
-			problist=proba.CalacProba(self.sortedeps,options)
-			print(problist)
 			command.CreateIpChain(self.svname) #create a new chain for the service, it will contain all endpoints with different proba. 
 			if command.CheckIpChain(self.svname):
 				command.ApplyIpRuleChain(self.svip,self.svname)
 			for ep in self.sortedeps:
 				i=self.sortedeps.index(ep)
-				if i!=len(self.sortedeps)-1:
+				if i!=len(self.sortedeps):
 					command.CreateIpRuleWithProba(self.svname,self.svip,ep.ip,problist[i])
 				else:
 					if problist[i] != 1: 
@@ -69,7 +72,7 @@ class best:
 					if not command.CheckIpRuleWithProba(self.svname,self.svip,ep.ip,problist[i-1],i):
 						print("entered")
 						command.ClearIpChain(self.svname,"F")
-						self.ApplyLBBest()
+						self.ApplyLBBest(options)
 					
 def UpdateBest(self):
 	return

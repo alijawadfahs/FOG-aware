@@ -102,7 +102,7 @@ def Check(svcl,BestList):
 				if b.svname == sv.name:
 					DeleteSvc(sv) # to be changed the service should be added before deletion, makes a problem of deleting the new service rules. 
 					del(BestList[app.GetIndex(sv,BestList)])
-					BestList.append(app.best(GetSvIndex(sv,svcl2)))
+					BestList.append(app.best(GetSvIndex(sv,svcl2),main.GetOptions()))
 			#else it deletes to be implemented 
 
 			# service is added

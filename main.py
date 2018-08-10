@@ -70,6 +70,7 @@ def Run(options):
 	svcl = service.GetSvcs()
 	service.PrintSvcl(svcl)
 	for sv in svcl: 
+		print(sv.name)
 		BestList.append(app.best(sv,options))
 	while True: 
 		print("sleeping")
@@ -77,11 +78,6 @@ def Run(options):
 		print("wakeup")
 		svcl,BestList = service.Check(svcl,BestList)
 		app.PrintBestList(BestList)
-
-
-
-
-
 
 if __name__ == "__main__":
 		options = parseCliOptions()

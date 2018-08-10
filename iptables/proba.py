@@ -39,6 +39,7 @@ def CalacProba(SEP,options):
 			podprob.append(math.exp(-l)/sumall)
 		for p in podprob:
 			podprob[podprob.index(p)]=a*p+(1-a)*(1/len(SEP))
+		print("pod probability: "+ str(podprob))
 		return CalacProbFromPod(podprob)
 
 	if options['LB'] == '1/x':
@@ -50,6 +51,7 @@ def CalacProba(SEP,options):
 			podprob.append((1/l)/sumall)
 		for p in podprob:
 			podprob[podprob.index(p)]=a*p+(1-a)*(1/len(SEP))
+		print("pod probability: "+ str(podprob))
 		return CalacProbFromPod(podprob)
 
 	if options['LB'] == '1/x2':
@@ -61,6 +63,7 @@ def CalacProba(SEP,options):
 			podprob.append((1/(l*l))/sumall)
 		for p in podprob:
 			podprob[podprob.index(p)]=a*p+(1-a)*(1/len(SEP))
+		print("pod probability: "+ str(podprob))
 		return CalacProbFromPod(podprob)
 
 	return prob
