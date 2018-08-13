@@ -81,7 +81,7 @@ def Run(options):
 
 if __name__ == "__main__":
 		options = parseCliOptions()
-		#command.DeleteAllRules()
-		Run(options)
+		command.DeleteAllRules()
+		#Run(options)
 
 

@@ -192,7 +192,7 @@ def DeleteAllRules():
 	out=GetIpRulesWithLineNumbers("OUTPUT")
 	for x in out.splitlines():
 		if "FOG" in x:
-			chains.append(x.split()[1].split('-')[1])
+			chains.append(x.split()[1].split("FOG-")[1])
 
 	DeleteIpRuleChain("OUTPUT","","")
 	DeleteIpRuleChain("PREROUTING","","")
