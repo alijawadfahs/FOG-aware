@@ -2,7 +2,7 @@
 
 ##################################### IMPORT ###############################################
 import sys
-sys.path.append('./iptables')
+sys.path.append('/home/ali/FOG-aware/iptables')
 
 import time
 import argparse
@@ -81,7 +81,7 @@ def Run(options):
 
 if __name__ == "__main__":
 		options = parseCliOptions()
-		command.DeleteAllRules()
-		#Run(options)
+		#command.DeleteAllRules()
+		Run(options)
 
 
