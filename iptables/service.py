@@ -50,8 +50,8 @@ class ep:
 	def GetEpLatency(self):
 		options=main.GetOptions()
 		if not options['serfoff']:
-			return command.GetSerfRtt(self.node)
-		return command.GetIpLatency(self.ip)
+			return options['Delay']+command.GetSerfRtt(self.node)
+		return options['Delay']+command.GetIpLatency(self.ip)
 
 	def UpdateEpLatency(self):
 		self.lat= self.GetEpLatency()

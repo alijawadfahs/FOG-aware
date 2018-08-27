@@ -53,7 +53,12 @@ def parseCliOptions():
 			action     = 'store_true',
 			help       = 'use serf for latency calculation or use ping',
 		)
-		
+		parser.add_argument( '--Delay', #imp
+			dest       = 'Delay',
+			type       = int,
+			default    = 1,
+			help       = 'counting for the enduser time',
+		)
 		options        = parser.parse_args()
 		return options.__dict__
 
