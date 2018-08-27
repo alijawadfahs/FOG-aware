@@ -21,6 +21,7 @@ def CalacProba(SEP,options):
 	lat     = []
 	sumall  = 0 
 	a       = options['alpha']
+	b       = options['Beta']
 	if options['LB'] == '1-best':
 		k = CalacK(SEP,options)
 		print("k= " + str(k))
@@ -34,9 +35,9 @@ def CalacProba(SEP,options):
 		for ep in SEP:
 			lat.append(ep.lat)
 		for l in lat: 
-			sumall+= math.exp(-l)
+			sumall+= math.exp(-b*l)
 		for l in lat: 
-			podprob.append(math.exp(-l)/sumall)
+			podprob.append(math.exp(-b*l)/sumall)
 		for p in podprob:
 			podprob[podprob.index(p)]=a*p+(1-a)*(1/len(SEP))
 		print("pod probability: "+ str(podprob))
@@ -46,9 +47,9 @@ def CalacProba(SEP,options):
 		for ep in SEP:
 			lat.append(ep.lat)
 		for l in lat: 
-			sumall+= 1/l
+			sumall+= 1/math.pow(l,b)
 		for l in lat: 
-			podprob.append((1/l)/sumall)
+			podprob.append((1/(math.pow(l,b)))/sumall)
 		for p in podprob:
 			podprob[podprob.index(p)]=a*p+(1-a)*(1/len(SEP))
 		print("pod probability: "+ str(podprob))
