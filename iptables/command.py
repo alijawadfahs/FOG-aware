@@ -222,5 +222,9 @@ def GetSerfRtt(node):
 	logging.info("Running serf rtt " + node + " | cut -d: -f2 | cut -d ' ' -f2")
 	tup = commands.getstatusoutput("serf rtt " + node + " | cut -d: -f2 | cut -d ' ' -f2")
 	return float(tup[1])
-	DeleteIpRuleChain("PREROUTING","","")
+
+def GetHostName(): 
+	logging.info("Running hostname")
+	tup = commands.getstatusoutput("hostname")
+	return tup[1]
 
