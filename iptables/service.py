@@ -52,7 +52,7 @@ class ep:
 		hostname=command.GetHostName()
 		if not options['serfoff']:
 			if hostname==self.node:
-				return options['Delay']+0.3
+				return options['Delay']+options['local']
 			else:
 				return options['Delay']+command.GetSerfRtt(self.node)
 		return options['Delay']+command.GetIpLatency(self.ip)

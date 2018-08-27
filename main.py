@@ -55,9 +55,15 @@ def parseCliOptions():
 		)
 		parser.add_argument( '--Delay', #imp
 			dest       = 'Delay',
-			type       = int,
-			default    = 1,
+			type       = float,
+			default    = 1.0,
 			help       = 'counting for the enduser time',
+		)
+		parser.add_argument( '--LocalRtt', #imp
+			dest       = 'local',
+			type       = float,
+			default    = 0.3,
+			help       = 'local node rtt time, to count the time needed to access the pod',
 		)
 		options        = parser.parse_args()
 		return options.__dict__
