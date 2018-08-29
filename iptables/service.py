@@ -79,42 +79,18 @@ def GetSvcs():
 			svcl.append(svc(x[0],x[4],x[5].replace('/',':').split(":")[2],x[5])) # split the line into list of strings for managment purposes 
 	return svcl
 
-def Check(svcl,BestList):
-	status = {}
-	svcl2 = GetSvcs()
-	for sv in svcl: 
-		if not CheckSvc(sv):
-			if GetSvIndex(sv,svcl2):
-				app.PrintBestList(BestList)
-				# service is changed
-				DeleteSvc(sv) # to be changed the service should be added before deletion, makes a problem of deleting the new service rules. 
-				del(BestList[app.GetIndex(sv,BestList)])
-				BestList.append(app.best(GetSvIndex(sv,svcl2)))
-				status[sv.name]="CHANGED"
-			else: 
-				DeleteSvc(sv)
-				del(BestList[app.GetIndex(sv,BestList)])
-				# service is deleted
+def Check(svcl,BestList,options):
+
+	svcl2 = GetSvcs() #checking the services 
 	for sv in svcl2:
-		if not GetSvIndex(sv,svcl): 
-			BestList.append(app.best(GetSvIndex(sv,svcl2)))
-			status[sv.name]="ADDED" 
-	for b in BestList: # to be inspected more
-		if b.epid =='none':
-			for sv in svcl2: 
+		if not GetSvIndex(sv,svcl):
+			print("SERVICE "+ sv.name+ " IS ADDED")
+			BestList.append(app.best(sv,options))
 
-				if b.svname == sv.name:
-					DeleteSvc(sv) # to be changed the service should be added before deletion, makes a problem of deleting the new service rules. 
-					del(BestList[app.GetIndex(sv,BestList)])
-					BestList.append(app.best(GetSvIndex(sv,svcl2),main.GetOptions()))
-			#else it deletes to be implemented 
+	#checking for added svc's:
 
-			# service is added
-	#for key, value in status.iteritems():
-	#print key + " : " + value
-	
 
-	return svcl2,BestList 
+	return svcl2,BestList
 
 
 def CheckAllEp(sv):

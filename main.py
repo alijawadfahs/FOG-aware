@@ -93,12 +93,12 @@ def Run(options):
 		print("sleeping")
 		time.sleep(options['cycle'])
 		print("wakeup")
-		svcl,BestList = service.Check(svcl,BestList)
+		svcl,BestList = service.Check(svcl,BestList,options)
 		app.PrintBestList(BestList)
 
 if __name__ == "__main__":
 		options = parseCliOptions()
-		#command.DeleteAllRules()
-		Run(options)
+		command.DeleteAllRules()
+		#Run(options)
 
 
