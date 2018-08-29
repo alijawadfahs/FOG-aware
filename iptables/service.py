@@ -81,14 +81,20 @@ def GetSvcs():
 
 def Check(svcl,BestList,options):
 
+	#checking for added svc's:
 	svcl2 = GetSvcs() #checking the services 
 	for sv in svcl2:
 		if not GetSvIndex(sv,svcl):
 			print("SERVICE "+ sv.name+ " IS ADDED")
 			BestList.append(app.best(sv,options))
+	
 
-	#checking for added svc's:
-
+	#checking for deleted svc's:
+	for sv in svcl: 
+		if GetSvIndex(sv,svcl2)==False:
+			print("SERVICE "+ sv.name + " IS DELETED")
+			DeleteSvc(sv)
+			del(BestList[app.GetIndex(sv,BestList)])
 
 	return svcl2,BestList
 
@@ -116,8 +122,7 @@ def CheckEp(ep,svid):
 
 
 
-def CheckSvc(sv):
-	svcl = GetSvcs()
+def CheckSvc(sv,svcl):
 	svi = GetSvIndex(sv,svcl)
 	if svi: # the service is available
 		for ep in sv.ep: 
@@ -134,7 +139,7 @@ def GetSvIndex(sv,svcl):
 	for svi in svcl:
 		if sv.name==svi.name and sv.ip==svi.ip and sv.id==svi.id:
 			return svi
-	return 
+	return False
 
 def DeleteAllSvc(svcl):
 	for sv in svcl: 
@@ -142,8 +147,9 @@ def DeleteAllSvc(svcl):
 
 
 def DeleteSvc(sv):
-	command.DeleteIpRuleChain("OUTPUT",sv.id,sv.ip)
-	command.DeleteIpRuleChain("PREROUTING",sv.id,sv.ip)
+	command.DeleteIpRuleChain("OUTPUT",sv.name,sv.ip)
+	command.DeleteIpRuleChain("PREROUTING",sv.name,sv.ip)
+	command.ClearIpChain(sv.name,"X")
 
 def PrintSvcl(svcl):
 	names=[]
