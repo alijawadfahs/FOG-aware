@@ -113,11 +113,22 @@ def Check(svcl,BestList,options):
 		 					temp=1
 		 					break 
 		 			if temp==0: # the pod is removed
-		 				print(e1.ip+ " is removed")
-		 				BestList=UpdateSvc(sv1,BestList,options)
+		 				print(e1.ip+ "  FAILED")
+		 				BestList=UpdateSvc(sv2,BestList,options)
+		 				break
+
+		 		for e1 in sv2.ep:
+		 			temp=0
+		 			for e2 in sv1.ep:
+		 				if (e1.ip==e2.ip) and (e1.id==e2.id):
+		 					temp=1
+		 					break 
+		 			if temp==0: # the pod is added
+		 				print(e2.ip+ " is INJECTED")
+		 				BestList=UpdateSvc(sv2,BestList,options)
 		 				break
 		 		break
-		 				
+			
 	return svcl2,BestList
 
 def UpdateSvc(sv,BestList,options):
