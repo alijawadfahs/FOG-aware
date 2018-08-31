@@ -12,10 +12,14 @@ def OutReturn(com): # testing purposes
 
 def GetIpRules(ID):
 	logging.info("Running " + "iptables -t nat -L "+ID)
-	tup = commands.getstatusoutput("iptables -t nat -L "+ID) 
+	tup = commands.getstatusoutput("iptables -t nat -L "+ID)
+	i=0 
 	while (not tup[0] == 0 ):
+		i+=1
 		logging.warning("error " + tup[1])
 		tup = commands.getstatusoutput("iptables -t nat -L "+ID)
+		if i==10:
+			break;
 	return tup[1]
 
 def GetIpRulesWithLineNumbers(ID):
@@ -219,6 +223,8 @@ def GetSerfMembers():
 	return tup[1]
 	
 def GetSerfRtt(node):
+	if not node: 
+		return 1000
 	logging.info("Running serf rtt " + node + " | cut -d: -f2 | cut -d ' ' -f2")
 	tup = commands.getstatusoutput("serf rtt " + node + " | cut -d: -f2 | cut -d ' ' -f2")
 	return float(tup[1])

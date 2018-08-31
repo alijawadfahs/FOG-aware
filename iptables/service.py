@@ -90,14 +90,41 @@ def Check(svcl,BestList,options):
 	
 
 	#checking for deleted svc's:
-	for sv in svcl: 
+	for sv in svcl:
+		delsv=[]
 		if GetSvIndex(sv,svcl2)==False:
 			print("SERVICE "+ sv.name + " IS DELETED")
-			DeleteSvc(sv)
-			del(BestList[app.GetIndex(sv,BestList)])
+			DeleteSvc(sv,"X")# delete the iptables rules
+			delsv.append(sv) # to be deleted from the list 
+			del(BestList[app.GetIndex(sv,BestList)])# delete from the apply list
+	for sv in delsv: 
+		del(svcl[svcl.index(sv)])
 
+	#checking for edited svc's:
+	for sv1 in svcl: 
+	# 	for e in sv1.ep:
+	# 		if not CheckEp(e,sv1.id): # a pod have failed
+		for sv2 in svcl2:	
+		 	if (sv1.name==sv2.name) and (sv1.ip==sv2.ip) and (sv1.id==sv2.id):
+		 		for e1 in sv1.ep:
+		 			temp=0
+		 			for e2 in sv2.ep:
+		 				if (e1.ip==e2.ip) and (e1.id==e2.id):
+		 					temp=1
+		 					break 
+		 			if temp==0: # the pod is removed
+		 				print(e1.ip+ " is removed")
+		 				BestList=UpdateSvc(sv1,BestList,options)
+		 				break
+		 		break
+		 				
 	return svcl2,BestList
 
+def UpdateSvc(sv,BestList,options):
+	DeleteSvc(sv,"F")# delete the iptables rules
+	del(BestList[app.GetIndex(sv,BestList)])
+	BestList.append(app.best(sv,options))
+	return BestList
 
 def CheckAllEp(sv):
 	for ep in sv.ep: 
@@ -137,8 +164,8 @@ def CheckSvc(sv,svcl):
 
 def GetSvIndex(sv,svcl):
 	for svi in svcl:
-		if sv.name==svi.name and sv.ip==svi.ip and sv.id==svi.id:
-			return svi
+		if (sv.name==svi.name) and (sv.ip==svi.ip) and (sv.id==svi.id):
+			return True
 	return False
 
 def DeleteAllSvc(svcl):
@@ -146,10 +173,10 @@ def DeleteAllSvc(svcl):
 		DeleteSvc(sv)
 
 
-def DeleteSvc(sv):
+def DeleteSvc(sv,option):
 	command.DeleteIpRuleChain("OUTPUT",sv.name,sv.ip)
 	command.DeleteIpRuleChain("PREROUTING",sv.name,sv.ip)
-	command.ClearIpChain(sv.name,"X")
+	command.ClearIpChain(sv.name,option)
 
 def PrintSvcl(svcl):
 	names=[]
