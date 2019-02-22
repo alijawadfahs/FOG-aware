@@ -59,9 +59,9 @@ def CalacProba(SEP,options):
 		for ep in SEP:
 			lat.append(ep.lat)
 		for l in lat: 
-			sumall+= 1/(l*l)
+			sumall+= 1/(b*l)
 		for l in lat: 
-			podprob.append((1/(l*l))/sumall)
+			podprob.append((1/(b*l))/sumall)
 		for p in podprob:
 			podprob[podprob.index(p)]=a*p+(1-a)*(1/len(SEP))
 		print("pod probability: "+ str(podprob))
