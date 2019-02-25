@@ -2,7 +2,7 @@
 
 ##################################### IMPORT ###############################################
 import sys
-sys.path.append('/home/ali/FOG-aware/iptables')
+sys.path.append('./iptables')
 
 import time
 import argparse
