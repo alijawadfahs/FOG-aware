@@ -90,8 +90,8 @@ def Check(svcl,BestList,options):
 	
 
 	#checking for deleted svc's:
+	delsv=[]
 	for sv in svcl:
-		delsv=[]
 		if GetSvIndex(sv,svcl2)==False:
 			print("SERVICE "+ sv.name + " IS DELETED")
 			DeleteSvc(sv,"X")# delete the iptables rules
