@@ -117,16 +117,16 @@ def Check(svcl,BestList,options):
 		 				BestList=UpdateSvc(sv2,BestList,options)
 		 				break
 
-		 		for e1 in sv2.ep:
+		 		for e2 in sv2.ep:
 		 			temp=0
-		 			for e2 in sv1.ep:
+		 			for e1 in sv1.ep:
 		 				if (e1.ip==e2.ip) and (e1.id==e2.id):
 		 					temp=1
 		 					break 
-			 			if temp==0: # the pod is added
-			 				print(e2.ip+ " is INJECTED")
-			 				BestList=UpdateSvc(sv2,BestList,options)
-			 				break
+			 		if temp==0: # the pod is added
+			 			print(e2.ip+ " is INJECTED")
+			 			BestList=UpdateSvc(sv2,BestList,options)
+			 			break
 		 		break
 			
 	return svcl2,BestList
