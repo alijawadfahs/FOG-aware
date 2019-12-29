@@ -11,23 +11,23 @@ def OutReturn(com): # testing purposes
 ######################## IP RULES COMMANDS#########################################
 
 def GetIpRules(ID):
-	logging.info("Running " + "iptables -t nat -L "+ID)
-	tup = commands.getstatusoutput("iptables -t nat -L "+ID)
+	logging.info("Running " + "iptables -n -t nat -L "+ID)
+	tup = commands.getstatusoutput("iptables -n -t nat -L "+ID)
 	i=0 
 	while (not tup[0] == 0 ):
 		i+=1
 		logging.warning("error " + tup[1])
-		tup = commands.getstatusoutput("iptables -t nat -L "+ID)
+		tup = commands.getstatusoutput("iptables -n -t nat -L "+ID)
 		if i==10:
 			break;
 	return tup[1]
 
 def GetIpRulesWithLineNumbers(ID):
-	logging.info("Running " + "iptables --line-number -t nat -L "+ID +" | tail -n+3")
-	tup = commands.getstatusoutput("iptables --line-number -t nat -L "+ID + " | tail -n+3")
+	logging.info("Running " + "iptables -n --line-number -t nat -L "+ID +" | tail -n+3")
+	tup = commands.getstatusoutput("iptables -n --line-number -t nat -L "+ID + " | tail -n+3")
 	while (not tup[0] == 0 ):
 		logging.warning("error " + tup[1])
-		tup = commands.getstatusoutput("iptables --line-number -t nat -L "+ID)
+		tup = commands.getstatusoutput("iptables -n --line-number -t nat -L "+ID)
 	return tup[1]
 
 def ApplyIpRule(SIP,EIP,SVNAME):
@@ -81,8 +81,8 @@ def CreateIpRuleWithProba(SVNAME,SIP,EIP,PROBA):
 	tup = commands.getstatusoutput("iptables -t nat -m statistic --mode random -j DNAT -A FOG-"+SVNAME+" -d "+SIP+" --probability "+str(PROBA)+" --to-destination " + EIP)
 
 def CheckIpRuleWithProba(SVNAME,SIP,EIP,PROBA,i):
-	logging.info("Running " + "iptables -t nat -L FOG-"+SVNAME+" "+str(i))
-	tup = commands.getstatusoutput("iptables -t nat -L FOG-"+SVNAME+" "+str(i))
+	logging.info("Running " + "iptables -n -t nat -L FOG-"+SVNAME+" "+str(i))
+	tup = commands.getstatusoutput("iptables -n -t nat -L FOG-"+SVNAME+" "+str(i))
 	if tup !=0: #rule number is not found 
 		logging.info("rule number is not found")
 		return False
@@ -103,15 +103,15 @@ def CreateIpChain(name):
 	logging.info("Running " + "iptables -t nat -N FOG-"+ name)
 	tup = commands.getstatusoutput("iptables -t nat -N FOG-"+ name)
 def CheckIpChainEmpty(name):
-	logging.info("Running " + "iptables -t nat -L FOG-"+ name+ " 1")
-	tup = commands.getstatusoutput("iptables -t nat -L FOG-"+ name+" 1")
+	logging.info("Running " + "iptables -n -t nat -L FOG-"+ name+ " 1")
+	tup = commands.getstatusoutput("iptables -n -t nat -L FOG-"+ name+" 1")
 	if tup[0]==0 and tup[1]=='': 
 		return True #the chain is empty
 	return False #the chain have at least one rule
 
 def CheckIpChain(name):
 	logging.info("Running " + "iptables -t nat -L FOG-"+ name)
-	tup = commands.getstatusoutput("iptables -t nat -L FOG-"+ name)
+	tup = commands.getstatusoutput("iptables -n -t nat -L FOG-"+ name)
 	if tup[0]== 0:
 		return True #the chain is already created
 	return False #the chain is not found
