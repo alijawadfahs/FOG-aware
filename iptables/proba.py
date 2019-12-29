@@ -22,6 +22,8 @@ def CalacProba(SEP,options):
 	sumall  = 0 
 	a       = options['alpha']
 	b       = options['Beta']
+	if a==1:
+		a=0.999
 	if options['LB'] == '1-best':
 		k = CalacK(SEP,options)
 		print("k= " + str(k))
