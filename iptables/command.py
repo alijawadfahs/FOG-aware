@@ -227,7 +227,11 @@ def GetSerfRtt(node):
 		return 1000
 	logging.info("Running serf rtt " + node + " | cut -d: -f2 | cut -d ' ' -f2")
 	tup = commands.getstatusoutput("serf rtt " + node + " | cut -d: -f2 | cut -d ' ' -f2")
-	return float(tup[1])
+	try:
+    float(tup[1])
+    return float(tup[1])
+	except ValueError:
+    return float(tup[1])
 
 def GetHostName(): 
 	logging.info("Running hostname")
