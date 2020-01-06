@@ -231,7 +231,7 @@ def GetSerfRtt(node):
 		float(tup[1])
 		return float(tup[1])
 	except ValueError:
-		return float(tup[1])
+		return float(1000)
 
 def GetHostName(): 
 	logging.info("Running hostname")
