@@ -60,11 +60,13 @@ class ep:
 	def UpdateEpLatency(self):
 		self.lat= self.GetEpLatency()
 
+
 	def GetEpNode(self):
 		out=command.GetSerfMembers()
 		for x in out.splitlines():
-			x=x.replace("ip=",'').split()
-			if CheckIpForSerf(self.ip,x[3]):
+			x=x.split()
+			Ip=GetIpFromFlags(x[3])
+			if CheckIpForSerf(self.ip,Ip):
 				return x[0]
 
  
@@ -233,5 +235,9 @@ def CheckIpForSerf(epip,serfip):
 			return False
 	return True
 
+def GetIpFromFlags(flags): 
+	for x in flags.split(","): 
+		if "ip=" in x: 
+			return x.replace("ip=","")
 
 
